@@ -2,49 +2,20 @@
 # It is expected that the valuesOverride.additionalCharts are in the same order as that of the package.yaml
 valuesOverride:
   chart: {}
-    # rkeProxy:
-    #   enabled: true
-    # rkeScheduler:
-    #   enabled: true
-    # rkeControllerManager:
-    #   enabled: true
-    # rkeEtcd:
+    # prometheus:
     #   enabled: true
   additionalCharts: []
   # - image:
   #     repository: rancher/kubectl
   #     tag: v1.20.3
 
-# (optional) Include specific tests you would like to include for this case that are not included in the test.yaml
-include:
-  global:
-    unitTests: []
-    # - path: "Path to file or glob in tests/"
-    integrationTests: []
-    # - path: "Path to file or glob in tests/"
-    validationTests: []
-    # - path: "Path to file or glob in tests/"
-  package:
-    unitTests: []
-    # - path: "Path to file or glob in packages/${package}/tests/"
-    integrationTests: []
-    # - path: "Path to file or glob in packages/${package}/tests/"
-    validationTests: []
-    # - path: "Path to file or glob in packages/${package}/tests/"
+# Paths to files or globs for unit tests in packages/<package>/tests
+unitTests:
+- path: "unit/*"
 
-# (optional) Exclude specific tests that were included in the tests.yaml for this test case
-exclude:
-  global:
-    unitTests: []
-    # - path: "Path to file or glob in tests/"
-    integrationTests: []
-    # - path: "Path to file or glob in tests/"
-    validationTests: []
-    # - path: "Path to file or glob in tests/"
-  package:
-    unitTests: []
-    # - path: "Path to file or glob in packages/${package}/tests/"
-    integrationTests: []
-    # - path: "Path to file or glob in packages/${package}/tests/"
-    validationTests: []
-    # - path: "Path to file or glob in packages/${package}/tests/"
+# Paths to files or globs for integration tests in packages/<package>/tests
+integrationTests:
+- path: "integration/*"
+
+# Paths to files or globs for validation tests in packages/<package>/tests
+validationTests: []
