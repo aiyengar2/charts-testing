@@ -1,0 +1,16 @@
+global:
+  unitTests:
+  - path: []
+  # - path: "Path to file or glob in tests/"
+  integrationTests: []
+  # - path: "Path to file or glob in tests/"
+  validationTests: []
+  # - path: "Path to file or glob in tests/"
+
+package:
+  unitTests: []
+  # - path: "Path to file or glob in packages/${package}/tests/"
+  integrationTests: []
+  # - path: "Path to file or glob in packages/${package}/tests/"
+  validationTests: []
+  # - path: "Path to file or glob in packages/${package}/tests/"
