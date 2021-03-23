@@ -1,0 +1,19 @@
+# Name of the check that you want to run
+name: "example-check"
+
+# The name of the template that will extract the data for this check
+template: "dangling-service"
+# Additional flags that can be passed to the template to limit the check based on YAML on the selected resources
+params: {}
+
+# The types of objects that this check should be run on, based on the resource kind
+scope:
+  # The kinds of objects that this check should be applied on
+  # The kinds listed here need to be supported by the tempalte that you declare
+  objectKinds: []
+  # - Service
+
+# (optional) Place a human-readable description here of what this check does
+description: ""
+# (optional) Place a human-readable description of how to resolve the issue that this check flags
+remediation: ""
