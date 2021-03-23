@@ -1,0 +1,51 @@
+#!/bin/bash
+
+cd $(dirname $0)
+
+source bootstrap
+
+cd ..
+
+if [ -z "${PACKAGES}" ]; then
+    # Default to running all unit tests
+    PACKAGES=$(find packages -type d -mindepth 1 -maxdepth 1 | cut -d'/' -f2 | xargs)
+fi
+
+echo "Running unit tests on PACKAGES=(${PACKAGES})"
+echo ""
+
+echo "> Ensuring that all packages exist..."
+for package in ${PACKAGES}; do
+    if ! [ -d packages/${package} ]; then
+        echo "Package ${package} does not exist"
+        exit 1
+    fi
+done
+echo ""
+
+for package in ${PACKAGES}; do
+    echo "> Running ${package} tests..."
+    echo ""
+    if ! [[ -d packages/${package}/tests ]]; then
+        echo ">> No tests specified in packages/${package}/tests. Skipping..."
+        echo ""
+        continue
+    fi
+    if ! [[ -d packages/${package}/tests/cases && -n "$(ls -A packages/${package}/tests/cases)" ]]; then
+        echo ">> No test cases specified. Skipping..."
+        echo ""
+        continue
+    fi
+    for case in $(find packages/${package}/tests/cases -type f); do
+        tests=$(yq r scripts/templates/tests/cases/_example.yaml 'unitTests[*].path'| sed "s/^/packages\/${package}\/tests\//")
+        for test in ${tests}; do
+            (
+                echo ">> ${case}"; 
+                set -x; 
+                go test -v "${test}"; 
+                { set +x; } 2>/dev/null; 
+                echo ""
+            )
+        done
+    done
+done

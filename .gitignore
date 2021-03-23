@@ -1,3 +1,6 @@
 bin
 *.DS_Store
 .idea
+.dapper
+.cache
+.vscode
