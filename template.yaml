@@ -1,0 +1,344 @@
+---
+# Source: rancher-pushprox/templates/pushprox-clients-rbac.yaml
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: pushprox-component-client
+  namespace: default
+  labels: 
+    k8s-app: pushprox-component-client
+    release: RELEASE-NAME
+    component: "component"
+    provider: kubernetes
+spec:
+  privileged: false
+  hostNetwork: true
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'RunAsAny'
+  seLinux:
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 0
+        max: 65535
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 0
+        max: 65535
+  readOnlyRootFilesystem: false
+  volumes:
+    - 'secret'
+---
+# Source: rancher-pushprox/templates/pushprox-proxy-rbac.yaml
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: pushprox-component-proxy
+  namespace: default
+  labels: 
+    k8s-app: pushprox-component-proxy
+    release: RELEASE-NAME
+    component: "component"
+    provider: kubernetes
+spec:
+  privileged: false
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  seLinux:
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  readOnlyRootFilesystem: false
+  volumes:
+    - 'secret'
+---
+# Source: rancher-pushprox/templates/pushprox-clients-rbac.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pushprox-component-client
+  namespace: default
+  labels: 
+    k8s-app: pushprox-component-client
+    release: RELEASE-NAME
+    component: "component"
+    provider: kubernetes
+---
+# Source: rancher-pushprox/templates/pushprox-proxy-rbac.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pushprox-component-proxy
+  namespace: default
+  labels: 
+    k8s-app: pushprox-component-proxy
+    release: RELEASE-NAME
+    component: "component"
+    provider: kubernetes
+---
+# Source: rancher-pushprox/templates/pushprox-clients-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pushprox-component-client
+  labels: 
+    k8s-app: pushprox-component-client
+    release: RELEASE-NAME
+    component: "component"
+    provider: kubernetes
+rules:
+- apiGroups: ['policy']
+  resources: ['podsecuritypolicies']
+  verbs:     ['use']
+  resourceNames:
+  - pushprox-component-client
+---
+# Source: rancher-pushprox/templates/pushprox-proxy-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pushprox-component-proxy
+  labels: 
+    k8s-app: pushprox-component-proxy
+    release: RELEASE-NAME
+    component: "component"
+    provider: kubernetes
+rules:
+- apiGroups: ['policy']
+  resources: ['podsecuritypolicies']
+  verbs:     ['use']
+  resourceNames:
+  - pushprox-component-proxy
+---
+# Source: rancher-pushprox/templates/pushprox-clients-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: pushprox-component-client
+  labels: 
+    k8s-app: pushprox-component-client
+    release: RELEASE-NAME
+    component: "component"
+    provider: kubernetes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pushprox-component-client
+subjects:
+  - kind: ServiceAccount
+    name: pushprox-component-client
+    namespace: default
+---
+# Source: rancher-pushprox/templates/pushprox-proxy-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: pushprox-component-proxy
+  labels: 
+    k8s-app: pushprox-component-proxy
+    release: RELEASE-NAME
+    component: "component"
+    provider: kubernetes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pushprox-component-proxy
+subjects:
+  - kind: ServiceAccount
+    name: pushprox-component-proxy
+    namespace: default
+---
+# Source: rancher-pushprox/templates/pushprox-proxy.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: pushprox-component-proxy
+  namespace: default
+  labels: 
+    k8s-app: pushprox-component-proxy
+    release: RELEASE-NAME
+    component: "component"
+    provider: kubernetes
+spec:
+  ports:
+  - name: pp-proxy
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector: 
+    k8s-app: pushprox-component-proxy
+    release: RELEASE-NAME
+    component: "component"
+    provider: kubernetes
+---
+# Source: rancher-pushprox/templates/pushprox-servicemonitor.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: pushprox-component-client
+  namespace: default
+  labels: 
+    k8s-app: pushprox-component-client
+    release: RELEASE-NAME
+    component: "component"
+    provider: kubernetes
+spec:
+  ports:
+  - name: metrics
+    port: 2739
+    protocol: TCP
+    targetPort: 2739
+  selector: 
+    k8s-app: pushprox-component-client
+    release: RELEASE-NAME
+    component: "component"
+    provider: kubernetes
+---
+# Source: rancher-pushprox/templates/pushprox-clients.yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: pushprox-component-client
+  namespace: default
+  labels: 
+    k8s-app: pushprox-component-client
+    release: RELEASE-NAME
+    component: "component"
+    provider: kubernetes
+    pushprox-exporter: "client"
+spec:
+  selector:
+    matchLabels: 
+      k8s-app: pushprox-component-client
+      release: RELEASE-NAME
+      component: "component"
+      provider: kubernetes
+  template:
+    metadata:
+      labels: 
+        k8s-app: pushprox-component-client
+        release: RELEASE-NAME
+        component: "component"
+        provider: kubernetes
+    spec:
+      nodeSelector: 
+        kubernetes.io/os: linux
+      tolerations: 
+        - key: "cattle.io/os"
+          value: "linux"
+          effect: "NoSchedule"
+          operator: "Equal"
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      serviceAccountName: pushprox-component-client
+      containers:
+      - name: pushprox-client
+        image: rancher/pushprox-client:v0.1.0-rancher1-client
+        command:
+          - "pushprox-client"
+        args:
+        - --fqdn=$(HOST_IP)
+        - --proxy-url=$(PROXY_URL)
+        - --metrics-addr=$(PORT)
+        - --allow-port=2739
+        env:
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: PORT
+          value: :9369
+        - name: PROXY_URL
+          value: http://pushprox-component-proxy.default.svc:8080
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+---
+# Source: rancher-pushprox/templates/pushprox-proxy.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pushprox-component-proxy
+  namespace: default
+  labels: 
+    k8s-app: pushprox-component-proxy
+    release: RELEASE-NAME
+    component: "component"
+    provider: kubernetes
+    pushprox-exporter: "proxy"
+spec:
+  selector:
+    matchLabels: 
+      k8s-app: pushprox-component-proxy
+      release: RELEASE-NAME
+      component: "component"
+      provider: kubernetes
+  template:
+    metadata:
+      labels: 
+        k8s-app: pushprox-component-proxy
+        release: RELEASE-NAME
+        component: "component"
+        provider: kubernetes
+    spec: 
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      nodeSelector: 
+        kubernetes.io/os: linux
+      tolerations: 
+        - key: "cattle.io/os"
+          value: "linux"
+          effect: "NoSchedule"
+          operator: "Equal"
+      serviceAccountName: pushprox-component-proxy
+      containers:
+      - name: pushprox-proxy
+        image: rancher/pushprox-proxy:v0.1.0-rancher1-proxy
+        command:
+          - "pushprox-proxy"
+---
+# Source: rancher-pushprox/templates/pushprox-servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: RELEASE-NAME-component
+  namespace: default
+  labels: 
+    app: RELEASE-NAME-component
+    release: "RELEASE-NAME"
+    release: RELEASE-NAME
+    component: "component"
+    provider: kubernetes
+spec:
+  endpoints:
+  - port: metrics
+    proxyUrl: http://pushprox-component-proxy.default.svc:8080
+  jobLabel: component
+  podTargetLabels:
+  - component
+  - pushprox-exporter
+  namespaceSelector:
+    matchNames:
+    - default
+  selector:
+    matchLabels: 
+      k8s-app: pushprox-component-client
+      release: RELEASE-NAME
+      component: "component"
+      provider: kubernetes

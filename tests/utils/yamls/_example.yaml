@@ -1,0 +1,20 @@
+# Name of the test that you want to run
+name: "example-test"
+info:
+  displayName: "Example Test"
+  description: "A test that serves as an example on how to create a test"
+spec:
+  kinds:
+  - Deployment
+  - DaemonSet
+  flags:
+  - 
+cases:
+- name: "case-1"
+  description: "The first thing to check on this test"
+  remediation: "Steps to resolve an error that comes from these tests"
+  kinds:
+  - Deployment
+  flags:
+    labels:
+      hello: world

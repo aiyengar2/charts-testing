@@ -1,4 +1,4 @@
-package kubelinter
+package utils
 
 import (
 	"fmt"
@@ -11,12 +11,10 @@ import (
 	"golang.stackrox.io/kube-linter/pkg/instantiatedcheck"
 	"golang.stackrox.io/kube-linter/pkg/lintcontext"
 	"golang.stackrox.io/kube-linter/pkg/run"
-
-	"github.com/rancher/charts/tests/kubelinter/checks"
 )
 
 func RunTests(globs []string) (err error) {
-	instChecks, err := checks.GetInstantiatedChecks()
+	instChecks, err := Load()
 	if err != nil {
 		return err
 	}
