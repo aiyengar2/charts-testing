@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"golang.stackrox.io/kube-linter/pkg/lintcontext"
+	"github.com/rancher/charts/testing/kubelinter/lintcontext"
 )
 
 func GetLintCtxs(globs []string) (lintCtxs []lintcontext.LintContext, err error) {
