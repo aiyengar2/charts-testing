@@ -25,3 +25,5 @@ mkdir -p packages/${PACKAGE}/tests
 cp -R scripts/templates/tests/* packages/${PACKAGE}/tests
 
 echo "Initialized packages/${PACKAGE}/tests based on template."
+
+./scripts/sync-tests
