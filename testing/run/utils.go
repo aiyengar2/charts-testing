@@ -1,4 +1,4 @@
-package kubelinter
+package run
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"golang.stackrox.io/kube-linter/pkg/lintcontext"
 )
 
-func getLintCtxs(globs []string) (lintCtxs []lintcontext.LintContext, err error) {
+func GetLintCtxs(globs []string) (lintCtxs []lintcontext.LintContext, err error) {
 	files, err := getFiles(globs)
 	if err != nil {
 		return nil, err
