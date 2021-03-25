@@ -26,6 +26,13 @@ func RunTests(templateGlobs []string) error {
 	passedAllTests := true
 	for _, lintCtx := range lintCtxs {
 		lintObjs := lintCtx.Objects()
+		invalidLinObjs := lintCtx.InvalidObjects()
+		if len(invalidLinObjs) > 0 {
+			for _, invalidObj := range invalidLinObjs {
+				logrus.Errorf("%v", invalidObj.LoadErr)
+			}
+			logrus.Fatalf("Failed to parse k8s manifest")
+		}
 		for _, test := range testsToRun {
 			objs, err := test.FilterObjects(lintObjs)
 			if err != nil {
