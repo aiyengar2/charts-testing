@@ -26,8 +26,6 @@ func (t Test) String() string {
 	return fmt.Sprintf("{test: %s, on: %v, description: %s}", t.ID, t.On, t.Description)
 }
 
-type DoFunc func(objs []v1.Object) (pass bool)
-
 func (t *Test) Run(lintObjs []lintcontext.Object) (pass bool) {
 	objs := make([]v1.Object, len(lintObjs))
 	for i, lintObj := range lintObjs {
