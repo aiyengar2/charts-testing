@@ -3,7 +3,7 @@ package tests
 import (
 	"fmt"
 
-	"golang.stackrox.io/kube-linter/pkg/lintcontext"
+	"github.com/rancher/charts/testing/kubelinter/lintcontext"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
