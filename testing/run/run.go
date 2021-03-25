@@ -37,7 +37,7 @@ func RunTests(templateGlobs []string) error {
 				logrus.Infof("%s %s", bold.Sprintf("(test %s)", test.ID), color.GreenString("pass"))
 			} else {
 				passedAllTests = false
-				logrus.Infof("%s %s", bold.Sprintf("(test %s)", test.ID), color.GreenString("pass"))
+				logrus.Errorf("%s %s", bold.Sprintf("(test %s)", test.ID), color.RedString("fail"))
 			}
 		}
 	}
