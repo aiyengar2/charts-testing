@@ -14,6 +14,13 @@ var (
 	objectInterface = reflect.TypeOf(new(v1.Object)).Elem()
 )
 
+// TODO(aiyengar2): Allow doFunc to be able to take in a single Resource instead of slice. Fail on runtime
+// if more than one of that type is received.
+
+// TODO(aiyengar2): Allow user to define whether a test is strict on declared resources (e.g. at least 1 of every field must be registered)
+
+// TODO(aiyengar2): Allow a user to define whether a test ignores unknown resources that are collected
+
 func WrapFunc(fromFunc interface{}) DoFunc {
 	caller := reflect.ValueOf(fromFunc)
 	funcType := reflect.TypeOf(fromFunc)

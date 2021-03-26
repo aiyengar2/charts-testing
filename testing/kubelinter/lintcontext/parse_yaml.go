@@ -12,7 +12,6 @@ import (
 	y "github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"github.com/rancher/charts/testing/kubelinter/k8sutil"
-	"github.com/rancher/charts/testing/scheme"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/chartutil"
@@ -21,6 +20,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/util/yaml"
+	"k8s.io/client-go/kubernetes/scheme"
 )
 
 const (
@@ -30,7 +30,7 @@ const (
 )
 
 var (
-	clientSchema = scheme.Scheme()
+	clientSchema = scheme.Scheme
 	decoder      = serializer.NewCodecFactory(clientSchema).UniversalDeserializer()
 )
 
