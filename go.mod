@@ -3,7 +3,6 @@ module github.com/rancher/charts
 go 1.16
 
 replace (
-	golang.stackrox.io/kube-linter/pkg/lintcontext => ./testing/kubelinter/lintcontext
 	k8s.io/api => k8s.io/api v0.19.0
 	k8s.io/client-go => k8s.io/client-go v0.19.0
 )
