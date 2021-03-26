@@ -3,7 +3,6 @@ module github.com/rancher/charts
 go 1.16
 
 replace (
-	golang.stackrox.io/kube-linter/pkg/lintcontext => ./testing/kubelinter/lintcontext
 	k8s.io/api => k8s.io/api v0.19.0
 	k8s.io/client-go => k8s.io/client-go v0.19.0
 )
@@ -11,6 +10,7 @@ replace (
 require (
 	github.com/fatih/color v1.9.0
 	github.com/ghodss/yaml v1.0.0
+	github.com/hashicorp/go-multierror v1.1.0
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.7 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
@@ -24,5 +24,6 @@ require (
 	k8s.io/api v0.20.4
 	k8s.io/apimachinery v0.20.4
 	k8s.io/cli-runtime v0.20.4 // indirect
+	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/kubectl v0.18.8
 )
