@@ -3,9 +3,9 @@ package builder
 import (
 	"fmt"
 
-	"github.com/rancher/charts/testing/kubelinter/lintcontext"
 	"github.com/rancher/charts/testing/tests"
 	"github.com/sirupsen/logrus"
+	"golang.stackrox.io/kube-linter/pkg/lintcontext"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 

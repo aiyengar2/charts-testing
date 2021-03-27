@@ -4,15 +4,16 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/rancher/charts/testing/kubelinter/lintcontext"
+	"golang.stackrox.io/kube-linter/pkg/lintcontext"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
 type testSuite struct {
 	// prefix will be added onto the name of all tests that are run
-	prefix string
-	scheme *runtime.Scheme
+	prefix  string
+	decoder runtime.Decoder
 
 	templateObjs map[string][]lintcontext.Object
 	tests        []*testBuilder
@@ -21,7 +22,7 @@ type testSuite struct {
 func NewTestSuite(prefix string) *testSuite {
 	return &testSuite{
 		prefix:       prefix,
-		scheme:       scheme.Scheme,
+		decoder:      serializer.NewCodecFactory(scheme.Scheme).UniversalDeserializer(),
 		templateObjs: map[string][]lintcontext.Object{},
 		tests:        []*testBuilder{},
 	}
@@ -31,7 +32,7 @@ func (s *testSuite) ParseTemplate(glob string) error {
 	if _, exists := s.templateObjs[glob]; exists {
 		return fmt.Errorf("Cannot parse template %s twice", glob)
 	}
-	objs, err := parseTemplate(glob, s.scheme, false)
+	objs, err := parseTemplate(glob, s.decoder, false)
 	if err != nil {
 		return err
 	}
@@ -43,7 +44,7 @@ func (s *testSuite) ParseTemplateStrict(glob string) error {
 	if _, exists := s.templateObjs[glob]; exists {
 		return fmt.Errorf("Cannot parse template %s twice", glob)
 	}
-	objs, err := parseTemplate(glob, s.scheme, true)
+	objs, err := parseTemplate(glob, s.decoder, true)
 	if err != nil {
 		return err
 	}
@@ -79,7 +80,11 @@ func (s *testSuite) RunTests() error {
 }
 
 func (s *testSuite) SetCustomScheme(customScheme *runtime.Scheme) {
-	s.scheme = customScheme
+	s.decoder = serializer.NewCodecFactory(customScheme).UniversalDeserializer()
+}
+
+func (s *testSuite) SetCustomDecoder(decoder runtime.Decoder) {
+	s.decoder = decoder
 }
 
 func (s *testSuite) test(templates []string) (b *testBuilder) {

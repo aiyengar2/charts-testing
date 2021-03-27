@@ -5,18 +5,18 @@ import (
 	"path/filepath"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/rancher/charts/testing/kubelinter/lintcontext"
 	"github.com/sirupsen/logrus"
+	"golang.stackrox.io/kube-linter/pkg/lintcontext"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func parseTemplate(glob string, s *runtime.Scheme, strict bool) ([]lintcontext.Object, error) {
-	lintcontext.UseCustomScheme(s)
+func parseTemplate(glob string, decoder runtime.Decoder, strict bool) ([]lintcontext.Object, error) {
 	files, err := filepath.Glob(glob)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse glob %s: %s", glob, err)
 	}
-	lintCtxs, err := lintcontext.CreateContexts(files...)
+	lintOptions := lintcontext.Options{CustomDecoder: decoder}
+	lintCtxs, err := lintcontext.CreateContextsWithOptions(lintOptions, files...)
 	if err != nil {
 		return nil, err
 	}
