@@ -10,6 +10,15 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
+// ParseOptions are options can be provided per template that is parsed into a testSuite
+type ParseOptions struct {
+	lintcontext.Options
+
+	// Strict fails to parse a template if a single object cannot be decoded
+	// Otherwise, the default behavior is just to print a warning log
+	Strict bool
+}
+
 type testSuite struct {
 	// prefix will be added onto the name of all tests that are run
 	prefix  string
@@ -26,14 +35,6 @@ func NewTestSuite(prefix string) *testSuite {
 		templateObjs: map[string][]lintcontext.Object{},
 		tests:        []*testBuilder{},
 	}
-}
-
-type ParseOptions struct {
-	lintcontext.Options
-
-	// Strict fails to parse a template if a single object cannot be decoded
-	// Otherwise, the default behavior is just to print a warning log
-	Strict bool
 }
 
 func (s *testSuite) ParseTemplate(template, glob string) error {
@@ -56,27 +57,10 @@ func (s *testSuite) ParseTemplateWithOptions(template, glob string, options Pars
 }
 
 func (s *testSuite) Test() *testBuilder {
-	templates := make([]string, len(s.templateObjs))
-	i := 0
-	for template := range s.templateObjs {
-		templates[i] = template
-		i++
-	}
-	return s.TestTemplates(templates)
-}
-
-func (s *testSuite) TestTemplates(templates []string) (b *testBuilder) {
-	testTemplateObjs := make(map[string][]lintcontext.Object, len(templates))
-	for _, template := range templates {
-		objs, exists := s.templateObjs[template]
-		if !exists {
-			panic(fmt.Sprintf("Template %s has not been added to this suite", template))
-		}
-		testTemplateObjs[template] = objs
-	}
 	test := &testBuilder{
-		templateObjs: testTemplateObjs,
+		suite:        s,
 		prefix:       s.prefix,
+		templateObjs: make(map[string][]lintcontext.Object, len(s.templateObjs)),
 	}
 	s.tests = append(s.tests, test)
 	return test

@@ -7,7 +7,7 @@ import (
 )
 
 func TestAllServiceAccountsAreUsed(t *testing.T) {
-	test := suite.Test().
+	test := suite.Test().All().
 		Name("check-service-account-usage").
 		Description("Ensure each service account is used at least once").
 		On("apps/v1", "Deployment").

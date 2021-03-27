@@ -10,10 +10,37 @@ import (
 )
 
 type testBuilder struct {
-	test tests.Test
+	suite *testSuite
+	test  tests.Test
 
 	prefix       string
 	templateObjs map[string][]lintcontext.Object
+}
+
+func (b *testBuilder) All() *testBuilder {
+	b.templateObjs = make(map[string][]lintcontext.Object, len(b.suite.templateObjs))
+	for k, v := range b.suite.templateObjs {
+		b.templateObjs[k] = v
+	}
+	return b
+}
+
+func (b *testBuilder) Include(template string) *testBuilder {
+	if _, exists := b.templateObjs[template]; !exists {
+		objs, exists := b.suite.templateObjs[template]
+		if !exists {
+			panic(fmt.Sprintf("Template %s has not been added to this suite", template))
+		}
+		b.templateObjs[template] = objs
+	}
+	return b
+}
+
+func (b *testBuilder) Exclude(template string) *testBuilder {
+	if _, exists := b.templateObjs[template]; exists {
+		delete(b.templateObjs, template)
+	}
+	return b
 }
 
 func (b *testBuilder) Name(name string) *testBuilder {
@@ -85,7 +112,7 @@ func (b *testBuilder) validate() error {
 		return fmt.Errorf("No function provided to execute test")
 	}
 	if len(b.templateObjs) == 0 {
-		logrus.Warnf("(%s) No templates provided", b.test.ID)
+		return fmt.Errorf("Could not find any templates to run %s on", b.test.ID)
 	}
 	return nil
 }
