@@ -28,27 +28,30 @@ func NewTestSuite(prefix string) *testSuite {
 	}
 }
 
-func (s *testSuite) ParseTemplate(glob string) error {
-	if _, exists := s.templateObjs[glob]; exists {
-		return fmt.Errorf("Cannot parse template %s twice", glob)
-	}
-	objs, err := parseTemplate(glob, s.decoder, false)
-	if err != nil {
-		return err
-	}
-	s.templateObjs[glob] = objs
-	return nil
+type ParseOptions struct {
+	lintcontext.Options
+
+	// Strict fails to parse a template if a single object cannot be decoded
+	// Otherwise, the default behavior is just to print a warning log
+	Strict bool
 }
 
-func (s *testSuite) ParseTemplateStrict(glob string) error {
-	if _, exists := s.templateObjs[glob]; exists {
+func (s *testSuite) ParseTemplate(template, glob string) error {
+	return s.ParseTemplateWithOptions(template, glob, ParseOptions{})
+}
+
+func (s *testSuite) ParseTemplateWithOptions(template, glob string, options ParseOptions) error {
+	if _, exists := s.templateObjs[template]; exists {
 		return fmt.Errorf("Cannot parse template %s twice", glob)
 	}
-	objs, err := parseTemplate(glob, s.decoder, true)
+	if options.CustomDecoder == nil {
+		options.CustomDecoder = s.decoder
+	}
+	objs, err := parseTemplate(glob, options)
 	if err != nil {
 		return err
 	}
-	s.templateObjs[glob] = objs
+	s.templateObjs[template] = objs
 	return nil
 }
 

@@ -7,16 +7,14 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/sirupsen/logrus"
 	"golang.stackrox.io/kube-linter/pkg/lintcontext"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func parseTemplate(glob string, decoder runtime.Decoder, strict bool) ([]lintcontext.Object, error) {
+func parseTemplate(glob string, options ParseOptions) ([]lintcontext.Object, error) {
 	files, err := filepath.Glob(glob)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse glob %s: %s", glob, err)
 	}
-	lintOptions := lintcontext.Options{CustomDecoder: decoder}
-	lintCtxs, err := lintcontext.CreateContextsWithOptions(lintOptions, files...)
+	lintCtxs, err := lintcontext.CreateContextsWithOptions(options.Options, files...)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +30,7 @@ func parseTemplate(glob string, decoder runtime.Decoder, strict bool) ([]lintcon
 		invalidObjs := lintCtx.InvalidObjects()
 		if len(invalidObjs) > 0 {
 			// Handle invalid objects
-			if strict {
+			if options.Strict {
 				var err *multierror.Error
 				for _, obj := range invalidObjs {
 					err = multierror.Append(err, obj.LoadErr)
