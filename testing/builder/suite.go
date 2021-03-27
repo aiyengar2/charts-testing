@@ -62,14 +62,24 @@ func (s *testSuite) Test() *testBuilder {
 		templates[i] = template
 		i++
 	}
-	return s.test(templates)
+	return s.TestTemplates(templates)
 }
 
-func (s *testSuite) TestTemplate(template string) (b *testBuilder) {
-	if _, exists := s.templateObjs[template]; !exists {
-		panic(fmt.Sprintf("Template %s has not been added to this suite", template))
+func (s *testSuite) TestTemplates(templates []string) (b *testBuilder) {
+	testTemplateObjs := make(map[string][]lintcontext.Object, len(templates))
+	for _, template := range templates {
+		objs, exists := s.templateObjs[template]
+		if !exists {
+			panic(fmt.Sprintf("Template %s has not been added to this suite", template))
+		}
+		testTemplateObjs[template] = objs
 	}
-	return s.test([]string{template})
+	test := &testBuilder{
+		templateObjs: testTemplateObjs,
+		prefix:       s.prefix,
+	}
+	s.tests = append(s.tests, test)
+	return test
 }
 
 func (s *testSuite) RunTests() error {
@@ -88,17 +98,4 @@ func (s *testSuite) SetCustomScheme(customScheme *runtime.Scheme) {
 
 func (s *testSuite) SetCustomDecoder(decoder runtime.Decoder) {
 	s.decoder = decoder
-}
-
-func (s *testSuite) test(templates []string) (b *testBuilder) {
-	testTemplateObjs := make(map[string][]lintcontext.Object, len(templates))
-	for _, template := range templates {
-		testTemplateObjs[template] = s.templateObjs[template]
-	}
-	test := &testBuilder{
-		templateObjs: testTemplateObjs,
-		prefix:       s.prefix,
-	}
-	s.tests = append(s.tests, test)
-	return test
 }
