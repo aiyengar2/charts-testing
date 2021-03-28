@@ -7,7 +7,7 @@ import (
 )
 
 func TestRancherImage(t *testing.T) {
-	test := suite.Test().
+	test := suite.Test().All().Exclude("system-default-registry.yaml").
 		Name("check-image-prefix").
 		Description("Ensure images have rancher/ in front of them").
 		On("apps/v1", "DaemonSet").
@@ -21,7 +21,7 @@ func TestRancherImage(t *testing.T) {
 }
 
 func TestRancherImageWithPrivateRegistry(t *testing.T) {
-	test := suite.Test().
+	test := suite.Test().Include("system-default-registry.yaml").
 		Name("check-system-default-registry").
 		Description("Ensure images use <system-default-registry>/rancher/ if it's provided").
 		On("apps/v1", "DaemonSet").
@@ -35,7 +35,7 @@ func TestRancherImageWithPrivateRegistry(t *testing.T) {
 }
 
 func TestImageExists(t *testing.T) {
-	test := suite.Test().
+	test := suite.Test().All().Exclude("system-default-registry.yaml").
 		Name("check-image-exists").
 		Description("Ensure images are present in DockerHub").
 		On("apps/v1", "DaemonSet").

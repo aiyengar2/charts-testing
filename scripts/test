@@ -11,8 +11,15 @@ if [ -z "${PACKAGES}" ]; then
     PACKAGES=$(find packages -type d -mindepth 1 -maxdepth 1 | cut -d'/' -f2 | xargs)
 fi
 
-echo "Running unit tests on PACKAGES=(${PACKAGES})"
-echo ""
+if [ -z ${STRICT} ]; then
+    STRICT=true
+fi
+
+echo "> Ensuring that asset have been generated..."
+if ! [ -d assets ]; then
+    echo "assets/ have not been prepared. Please run 'make charts' before running unit tests."
+    exit 1
+fi
 
 echo "> Ensuring that all packages exist..."
 for package in ${PACKAGES}; do
@@ -20,32 +27,24 @@ for package in ${PACKAGES}; do
         echo "Package ${package} does not exist"
         exit 1
     fi
+    if ! [ -d assets/${package} ] || [ -z "$(find assets/${PACKAGE} -mindepth 1 -maxdepth 1)" ]; then
+        echo "No chart archives found in assets/${package} to run unit tests on."
+    fi
 done
-echo ""
 
 for package in ${PACKAGES}; do
-    echo "> Running ${package} tests..."
-    echo ""
     if ! [[ -d packages/${package}/tests ]]; then
-        echo ">> No tests specified in packages/${package}/tests. Skipping..."
-        echo ""
+        echo ">> Could not find any tests for ${package}..."
         continue
     fi
-    if ! [[ -d packages/${package}/tests/cases && -n "$(ls -A packages/${package}/tests/cases)" ]]; then
-        echo ">> No test cases specified. Skipping..."
-        echo ""
-        continue
+    echo "> Running ${package} tests..."
+    ASSET_TGZ_FILE=$(find assets/${PACKAGE} -mindepth 1 -maxdepth 1 | sort | head -n 1)
+    if [ -z ${ASSET_TGZ_FILE} ]; then
+        echo "Could not find any assets in assets/${PACKAGE}"
     fi
-    for case in $(find packages/${package}/tests/cases -type f); do
-        tests=$(yq r scripts/templates/tests/cases/_example.yaml 'unitTests[*].path'| sed "s/^/packages\/${package}\/tests\//")
-        for test in ${tests}; do
-            (
-                echo ">> ${case}"; 
-                set -x; 
-                go test -v "${test}"; 
-                { set +x; } 2>/dev/null; 
-                echo ""
-            )
-        done
-    done
+    (
+        set -x
+        go test -v "./packages/${package}/tests" -strict=${STRICT} -chart=${ASSET_TGZ_FILE}; 
+        { set +x; } 2>/dev/null; 
+    )
 done

@@ -5,18 +5,16 @@ import (
 	"path/filepath"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/rancher/charts/testing/kubelinter/lintcontext"
 	"github.com/sirupsen/logrus"
-	"k8s.io/apimachinery/pkg/runtime"
+	"golang.stackrox.io/kube-linter/pkg/lintcontext"
 )
 
-func parseTemplate(glob string, s *runtime.Scheme, strict bool) ([]lintcontext.Object, error) {
-	lintcontext.UseCustomScheme(s)
+func parseTemplate(glob string, options ParseOptions) ([]lintcontext.Object, error) {
 	files, err := filepath.Glob(glob)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse glob %s: %s", glob, err)
 	}
-	lintCtxs, err := lintcontext.CreateContexts(files...)
+	lintCtxs, err := lintcontext.CreateContextsWithOptions(options.Options, files...)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +30,7 @@ func parseTemplate(glob string, s *runtime.Scheme, strict bool) ([]lintcontext.O
 		invalidObjs := lintCtx.InvalidObjects()
 		if len(invalidObjs) > 0 {
 			// Handle invalid objects
-			if strict {
+			if options.Strict {
 				var err *multierror.Error
 				for _, obj := range invalidObjs {
 					err = multierror.Append(err, obj.LoadErr)

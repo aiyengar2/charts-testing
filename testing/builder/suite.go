@@ -4,15 +4,25 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/rancher/charts/testing/kubelinter/lintcontext"
+	"golang.stackrox.io/kube-linter/pkg/lintcontext"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
+// ParseOptions are options can be provided per template that is parsed into a testSuite
+type ParseOptions struct {
+	lintcontext.Options
+
+	// Strict fails to parse a template if a single object cannot be decoded
+	// Otherwise, the default behavior is just to print a warning log
+	Strict bool
+}
+
 type testSuite struct {
 	// prefix will be added onto the name of all tests that are run
-	prefix string
-	scheme *runtime.Scheme
+	prefix  string
+	decoder runtime.Decoder
 
 	templateObjs map[string][]lintcontext.Object
 	tests        []*testBuilder
@@ -21,51 +31,39 @@ type testSuite struct {
 func NewTestSuite(prefix string) *testSuite {
 	return &testSuite{
 		prefix:       prefix,
-		scheme:       scheme.Scheme,
+		decoder:      serializer.NewCodecFactory(scheme.Scheme).UniversalDeserializer(),
 		templateObjs: map[string][]lintcontext.Object{},
 		tests:        []*testBuilder{},
 	}
 }
 
-func (s *testSuite) ParseTemplate(glob string) error {
-	if _, exists := s.templateObjs[glob]; exists {
-		return fmt.Errorf("Cannot parse template %s twice", glob)
-	}
-	objs, err := parseTemplate(glob, s.scheme, false)
-	if err != nil {
-		return err
-	}
-	s.templateObjs[glob] = objs
-	return nil
+func (s *testSuite) ParseTemplate(template, glob string) error {
+	return s.ParseTemplateWithOptions(template, glob, ParseOptions{})
 }
 
-func (s *testSuite) ParseTemplateStrict(glob string) error {
-	if _, exists := s.templateObjs[glob]; exists {
+func (s *testSuite) ParseTemplateWithOptions(template, glob string, options ParseOptions) error {
+	if _, exists := s.templateObjs[template]; exists {
 		return fmt.Errorf("Cannot parse template %s twice", glob)
 	}
-	objs, err := parseTemplate(glob, s.scheme, true)
+	if options.CustomDecoder == nil {
+		options.CustomDecoder = s.decoder
+	}
+	objs, err := parseTemplate(glob, options)
 	if err != nil {
 		return err
 	}
-	s.templateObjs[glob] = objs
+	s.templateObjs[template] = objs
 	return nil
 }
 
 func (s *testSuite) Test() *testBuilder {
-	templates := make([]string, len(s.templateObjs))
-	i := 0
-	for template := range s.templateObjs {
-		templates[i] = template
-		i++
+	test := &testBuilder{
+		suite:        s,
+		prefix:       s.prefix,
+		templateObjs: make(map[string][]lintcontext.Object, len(s.templateObjs)),
 	}
-	return s.test(templates)
-}
-
-func (s *testSuite) TestTemplate(template string) (b *testBuilder) {
-	if _, exists := s.templateObjs[template]; !exists {
-		panic(fmt.Sprintf("Template %s has not been added to this suite", template))
-	}
-	return s.test([]string{template})
+	s.tests = append(s.tests, test)
+	return test
 }
 
 func (s *testSuite) RunTests() error {
@@ -79,18 +77,9 @@ func (s *testSuite) RunTests() error {
 }
 
 func (s *testSuite) SetCustomScheme(customScheme *runtime.Scheme) {
-	s.scheme = customScheme
+	s.decoder = serializer.NewCodecFactory(customScheme).UniversalDeserializer()
 }
 
-func (s *testSuite) test(templates []string) (b *testBuilder) {
-	testTemplateObjs := make(map[string][]lintcontext.Object, len(templates))
-	for _, template := range templates {
-		testTemplateObjs[template] = s.templateObjs[template]
-	}
-	test := &testBuilder{
-		templateObjs: testTemplateObjs,
-		prefix:       s.prefix,
-	}
-	s.tests = append(s.tests, test)
-	return test
+func (s *testSuite) SetCustomDecoder(decoder runtime.Decoder) {
+	s.decoder = decoder
 }
