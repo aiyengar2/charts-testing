@@ -1,0 +1,43 @@
+#!/bin/bash
+set -e
+
+cd $(dirname $0)
+
+cd ..
+
+if ! [ -d packages ]; then
+    echo "No packages to synchronize tests for"
+    exit 0
+fi
+
+for package in $(find packages -type d -mindepth 1 -maxdepth 1 | cut -d'/' -f2 | xargs); do
+    mkdir -p packages/${package}/tests
+    cp tests/template/tests/main_test.go packages/${package}/tests/main_test.go
+    cp tests/template/tests/README.md packages/${package}/tests/README.md
+    if ! [ -f "packages/${package}/tests/package.go" ]; then
+        cat <<EOF > packages/${package}/tests/package.go
+package tests
+
+import "k8s.io/apimachinery/pkg/runtime"
+
+// NOTE: This file is called by main_test.go to initialize package-specific variables.
+//       Once generated, this file will never be automatically updated.
+
+const (
+	packageName = "${package}"
+)
+
+func addPackageSchemes(s *runtime.Scheme) {
+	// If your package has CRDs, call AddToScheme here to load the CRDs into the deserializer
+	// e.g.
+	// monitoringv1.AddToScheme(s)
+}
+
+EOF
+    fi
+    mkdir -p packages/${package}/tests/values
+    cp tests/template/tests/values/* packages/${package}/tests/values
+done
+
+echo "Synchronized tests across all packages."
+

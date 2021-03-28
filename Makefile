@@ -17,7 +17,7 @@ $(TARGETS):
 	@ls ./bin/charts-build-scripts 1>/dev/null 2>/dev/null || ./scripts/pull-scripts
 	./bin/charts-build-scripts $@
 
-SCRIPTS := $(shell ls scripts | grep -Ev "pull-scripts|regenerate-packages|version|initialize-tests")
+SCRIPTS := $(shell ls scripts | grep -Ev "pull-scripts|regenerate-packages|version|sync-tests")
 
 $(SCRIPTS): .dapper
 	./.dapper $@

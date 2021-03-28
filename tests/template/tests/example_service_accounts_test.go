@@ -6,6 +6,8 @@ import (
 	"github.com/rancher/charts/tests/common"
 )
 
+// NOTE: This file is provided as an example of how to write a test using the test suite
+
 func TestAllServiceAccountsAreUsed(t *testing.T) {
 	test := suite.Test().All().
 		Name("check-service-account-usage").
