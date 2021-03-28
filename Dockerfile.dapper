@@ -3,7 +3,7 @@ FROM golang:1.15.10-alpine3.13
 ARG DAPPER_HOST_ARCH
 ENV ARCH $DAPPER_HOST_ARCH
 
-RUN apk -U add bash git curl make patch yq
+RUN apk -U add bash git gcc curl make patch yq musl-dev
 RUN export VERIFY_CHECKSUM=false && \
     curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 \
     | bash && chmod +x /usr/local/bin/helm

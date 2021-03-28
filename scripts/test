@@ -1,10 +1,19 @@
 #!/bin/bash
+set -e
 
 cd $(dirname $0)
 
 source bootstrap
 
 cd ..
+
+go mod tidy
+
+echo "> Ensuring that assets have been generated..."
+if ! [ -d assets ]; then
+    echo "assets/ have not been prepared. Please run 'make charts' before running unit tests."
+    exit 1
+fi
 
 if [ -z "${PACKAGES}" ]; then
     # Default to running all unit tests
@@ -15,20 +24,15 @@ if [ -z ${STRICT} ]; then
     STRICT=true
 fi
 
-echo "> Ensuring that asset have been generated..."
-if ! [ -d assets ]; then
-    echo "assets/ have not been prepared. Please run 'make charts' before running unit tests."
-    exit 1
-fi
-
 echo "> Ensuring that all packages exist..."
 for package in ${PACKAGES}; do
     if ! [ -d packages/${package} ]; then
         echo "Package ${package} does not exist"
         exit 1
     fi
-    if ! [ -d assets/${package} ] || [ -z "$(find assets/${PACKAGE} -mindepth 1 -maxdepth 1)" ]; then
+    if ! [ -d assets/${package} ] || [ -z "$(find assets/${package} -mindepth 1 -maxdepth 1)" ]; then
         echo "No chart archives found in assets/${package} to run unit tests on."
+        exit 1
     fi
 done
 
@@ -38,13 +42,13 @@ for package in ${PACKAGES}; do
         continue
     fi
     echo "> Running ${package} tests..."
-    ASSET_TGZ_FILE=$(find assets/${PACKAGE} -mindepth 1 -maxdepth 1 | sort | head -n 1)
+    ASSET_TGZ_FILE=$(find assets/${package} -mindepth 1 -maxdepth 1 | sort | head -n 1)
     if [ -z ${ASSET_TGZ_FILE} ]; then
-        echo "Could not find any assets in assets/${PACKAGE}"
+        echo "Could not find any assets in assets/${package}"
     fi
     (
-        set -x
+        { set -x; set +e; } 2>/dev/null; 
         go test -v "./packages/${package}/tests" -strict=${STRICT} -chart=${ASSET_TGZ_FILE}; 
-        { set +x; } 2>/dev/null; 
+        { set +x; set -e; } 2>/dev/null; 
     )
 done
