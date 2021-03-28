@@ -22,7 +22,17 @@ fi
 
 mkdir -p packages/${PACKAGE}/tests
 
-cp -R scripts/templates/tests/* packages/${PACKAGE}/tests
+cp -R tests/template/tests/* packages/${PACKAGE}/tests
+
+rm packages/${PACKAGE}/tests/package.go
+
+cat <<EOF >  packages/${PACKAGE}/tests/package.go
+package tests
+
+const (
+	packageName = "${PACKAGE}"
+)
+EOF
 
 echo "Initialized packages/${PACKAGE}/tests based on template."
 
