@@ -3,7 +3,7 @@ module github.com/rancher/charts
 go 1.16
 
 replace (
-	golang.stackrox.io/kube-linter v0.0.0-20210316191552-241e80db4436 => github.com/aiyengar2/kube-linter v0.0.0-20210327215536-58ffbd17f3c1
+	golang.stackrox.io/kube-linter v0.0.0-20210316191552-241e80db4436 => github.com/aiyengar2/kube-linter v0.0.0-20210328010234-9ca145667de4
 	k8s.io/api => k8s.io/api v0.19.0
 	k8s.io/client-go => k8s.io/client-go v0.19.0
 )
