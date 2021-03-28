@@ -91,7 +91,7 @@ func ensureHelmChartExists(chartPath string) error {
 
 func parseValuesForChart(p Parser, chartPath string, strict bool) error {
 	chartPath = filepath.Clean(chartPath)
-	logrus.Infof("Parsing templates for %s from values directory", chartPath)
+	logrus.Infof("Parsing templates for %s", chartPath)
 	// Validate that the chartPath points to a single Helm chart
 	if err := ensureHelmChartExists(chartPath); err != nil {
 		return err
