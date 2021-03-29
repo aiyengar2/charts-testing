@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 
 	"golang.stackrox.io/kube-linter/pkg/lintcontext"
@@ -26,12 +27,12 @@ func (t Test) String() string {
 	return fmt.Sprintf("{test: %s, on: %v, description: %s}", t.ID, t.On, t.Description)
 }
 
-func (t *Test) Run(lintObjs []lintcontext.Object) (pass bool) {
+func (t *Test) Run(ctx context.Context, lintObjs []lintcontext.Object) (pass bool) {
 	objs := make([]v1.Object, len(lintObjs))
 	for i, lintObj := range lintObjs {
 		objs[i] = lintObj.K8sObject
 	}
-	return t.Do(objs)
+	return t.Do(ctx, objs)
 }
 
 func (t *Test) FilterObjects(lintObjs []lintcontext.Object) (objs []lintcontext.Object, err error) {

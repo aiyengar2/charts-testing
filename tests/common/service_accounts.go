@@ -1,6 +1,8 @@
 package common
 
 import (
+	"context"
+
 	"github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -18,7 +20,7 @@ type ServiceAccountUsages struct {
 	RoleBindings             []rbacv1.RoleBinding
 }
 
-func CheckServiceAccountUsage(s ServiceAccountUsages) (pass bool) {
+func CheckServiceAccountUsage(ctx context.Context, s ServiceAccountUsages) (pass bool) {
 	unusedServiceAccounts := make(map[string]bool)
 	for _, sa := range s.ServiceAccounts {
 		unusedServiceAccounts[sa.Name] = true

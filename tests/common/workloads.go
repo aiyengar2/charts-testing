@@ -1,6 +1,8 @@
 package common
 
 import (
+	"context"
+
 	"github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -13,7 +15,7 @@ type Workloads struct {
 	Pods        []corev1.Pod
 }
 
-func CheckRancherImagePrefix(w Workloads) (pass bool) {
+func CheckRancherImagePrefix(ctx context.Context, w Workloads) (pass bool) {
 	result := true
 
 	for _, deployment := range w.Deployments {
@@ -51,7 +53,7 @@ func CheckRancherImagePrefix(w Workloads) (pass bool) {
 	return result
 }
 
-func CheckImageExists(w Workloads) (pass bool) {
+func CheckImageExists(ctx context.Context, w Workloads) (pass bool) {
 	result := true
 	for _, deployment := range w.Deployments {
 		for _, container := range deployment.Spec.Template.Spec.Containers {
@@ -88,8 +90,17 @@ func CheckImageExists(w Workloads) (pass bool) {
 	return result
 }
 
-func CheckSystemDefaultRegistry(w Workloads) (pass bool) {
-	registry := "myfakereg.com"
+func CheckSystemDefaultRegistry(ctx context.Context, w Workloads) (pass bool) {
+	registryVal := ctx.Value("private-registry")
+	if registryVal == nil {
+		logrus.Errorf("Context does not contain key 'private-registry'")
+		return false
+	}
+	registry, ok := registryVal.(string)
+	if !ok {
+		logrus.Errorf("Registry %s is not a string", registryVal)
+		return false
+	}
 	result := true
 	for _, deployment := range w.Deployments {
 		for _, container := range deployment.Spec.Template.Spec.Containers {

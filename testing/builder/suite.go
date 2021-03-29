@@ -3,7 +3,6 @@ package builder
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-multierror"
 	"golang.stackrox.io/kube-linter/pkg/lintcontext"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -37,6 +36,14 @@ func NewTestSuite(prefix string) *testSuite {
 	}
 }
 
+func (s *testSuite) SetCustomScheme(customScheme *runtime.Scheme) {
+	s.decoder = serializer.NewCodecFactory(customScheme).UniversalDeserializer()
+}
+
+func (s *testSuite) SetCustomDecoder(decoder runtime.Decoder) {
+	s.decoder = decoder
+}
+
 func (s *testSuite) ParseTemplate(template, glob string) error {
 	return s.ParseTemplateWithOptions(template, glob, ParseOptions{})
 }
@@ -64,22 +71,4 @@ func (s *testSuite) Test() *testBuilder {
 	}
 	s.tests = append(s.tests, test)
 	return test
-}
-
-func (s *testSuite) RunTests() error {
-	var testErrs *multierror.Error
-	for _, test := range s.tests {
-		if err := test.Run(); err != nil {
-			testErrs = multierror.Append(testErrs, err)
-		}
-	}
-	return testErrs
-}
-
-func (s *testSuite) SetCustomScheme(customScheme *runtime.Scheme) {
-	s.decoder = serializer.NewCodecFactory(customScheme).UniversalDeserializer()
-}
-
-func (s *testSuite) SetCustomDecoder(decoder runtime.Decoder) {
-	s.decoder = decoder
 }

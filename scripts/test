@@ -36,6 +36,7 @@ for package in ${PACKAGES}; do
     fi
 done
 
+FAILED_TEST=0
 for package in ${PACKAGES}; do
     if ! [[ -d packages/${package}/tests ]]; then
         echo ">> Could not find any tests for ${package}..."
@@ -46,9 +47,11 @@ for package in ${PACKAGES}; do
     if [ -z ${ASSET_TGZ_FILE} ]; then
         echo "Could not find any assets in assets/${package}"
     fi
-    (
-        { set -x; set +e; } 2>/dev/null; 
-        go test -v "./packages/${package}/tests" -strict=${STRICT} -chart=${ASSET_TGZ_FILE}; 
-        { set +x; set -e; } 2>/dev/null; 
-    )
+    { set -x; set +e; } 2>/dev/null; 
+    go test -v "./packages/${package}/tests" -strict=${STRICT} -chart=${ASSET_TGZ_FILE};
+    { [ $? -ne 0 ] && FAILED_TEST=1; set +x; set -e; } 2>/dev/null; 
 done
+
+if [ ${FAILED_TEST} -ne 0 ]; then
+    exit 1
+fi

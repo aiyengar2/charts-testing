@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/rancher/charts/testing/tests"
@@ -13,8 +14,9 @@ type testBuilder struct {
 	suite *testSuite
 	test  tests.Test
 
-	prefix       string
-	templateObjs map[string][]lintcontext.Object
+	prefix        string
+	templateObjs  map[string][]lintcontext.Object
+	ignoreFilters bool
 }
 
 func (b *testBuilder) All() *testBuilder {
@@ -80,18 +82,31 @@ func (b *testBuilder) OnMatcher(matcher tests.ResourceMatcher) *testBuilder {
 	return b
 }
 
+func (b *testBuilder) OnAll() *testBuilder {
+	b.ignoreFilters = true
+	return b
+}
+
 func (b *testBuilder) Run() error {
+	return b.RunWithContext(context.TODO())
+}
+
+func (b *testBuilder) RunWithContext(ctx context.Context) error {
 	if err := b.validate(); err != nil {
 		return err
 	}
 	failedTemplates := []string{}
 	for template, lintObjs := range b.templateObjs {
 		logrus.Infof("Running test %s on template %s", b.test.ID, template)
-		objs, err := b.test.FilterObjects(lintObjs)
-		if err != nil {
-			return fmt.Errorf("Unable to get resources for test %s: %s", b.test.ID, err)
+		objs := lintObjs
+		if !b.ignoreFilters {
+			var err error
+			objs, err = b.test.FilterObjects(lintObjs)
+			if err != nil {
+				return fmt.Errorf("Unable to get resources for test %s: %s", b.test.ID, err)
+			}
 		}
-		if !b.test.Run(objs) {
+		if !b.test.Run(ctx, objs) {
 			failedTemplates = append(failedTemplates, template)
 		}
 	}
@@ -105,8 +120,8 @@ func (b *testBuilder) validate() error {
 	if len(b.test.ID) == 0 {
 		return fmt.Errorf("Test must have a name")
 	}
-	if len(b.test.On) == 0 {
-		return fmt.Errorf("No templates to run tests on")
+	if len(b.test.On) == 0 && !b.ignoreFilters {
+		return fmt.Errorf("No resources to run tests on")
 	}
 	if b.test.Do == nil {
 		return fmt.Errorf("No function provided to execute test")
