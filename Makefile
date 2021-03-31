@@ -1,8 +1,8 @@
 pull-scripts:
 	./scripts/pull-scripts
 
-initialize-tests:
-	./scripts/initialize-tests
+sync-tests:
+	./scripts/sync-tests
 
 .dapper:
 	@echo Downloading dapper
