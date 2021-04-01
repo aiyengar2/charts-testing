@@ -3,10 +3,15 @@ package builder
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/sirupsen/logrus"
 	"golang.stackrox.io/kube-linter/pkg/lintcontext"
+)
+
+const (
+	notK8sObjErrPrefix = "failed to decode: Object 'Kind' is missing in"
 )
 
 func parseTemplate(glob string, options ParseOptions) ([]lintcontext.Object, error) {
@@ -33,7 +38,12 @@ func parseTemplate(glob string, options ParseOptions) ([]lintcontext.Object, err
 			if options.Strict {
 				var err *multierror.Error
 				for _, obj := range invalidObjs {
-					err = multierror.Append(err, obj.LoadErr)
+					loadErr := obj.LoadErr
+					if strings.Contains(loadErr.Error(), notK8sObjErrPrefix) {
+						logrus.Warn(loadErr)
+						continue
+					}
+					err = multierror.Append(err, loadErr)
 				}
 				return nil, fmt.Errorf("Unable to parse template with invalid objects: %s", err)
 			} else {
